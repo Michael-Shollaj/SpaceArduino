@@ -1,0 +1,53 @@
+const int leftTiltPin = 3;
+const int rightTiltPin = 4;
+const int gameButtonPin = 5;
+const int greenLedPin = 6; // <- New pin for green LED
+
+void setup() {
+  Serial.begin(9600);
+
+  pinMode(leftTiltPin, INPUT_PULLUP);
+  pinMode(rightTiltPin, INPUT_PULLUP);
+  pinMode(gameButtonPin, INPUT_PULLUP);
+  pinMode(LED_BUILTIN, OUTPUT); // Red LED
+  pinMode(greenLedPin, OUTPUT); // Green LED
+
+  Serial.println("READY");
+}
+
+void loop() {
+  // Read tilt sensors
+  int leftTilt = digitalRead(leftTiltPin);
+  int rightTilt = digitalRead(rightTiltPin);
+
+  if (leftTilt == LOW && rightTilt == HIGH) {
+    Serial.println("AIM_LEFT");
+  } else if (rightTilt == LOW && leftTilt == HIGH) {
+    Serial.println("AIM_RIGHT");
+  } else {
+    Serial.println("NEUTRAL");
+  }
+
+  // Read button
+  int buttonState = digitalRead(gameButtonPin);
+  if (buttonState == LOW) {
+    Serial.println("GAME_BUTTON");
+    digitalWrite(LED_BUILTIN, HIGH); // Red light ON while shooting
+  } else {
+    digitalWrite(LED_BUILTIN, LOW);
+  }
+
+  // Check if Unity sent command to turn on green LED
+  if (Serial.available() > 0) {
+    String command = Serial.readStringUntil('\n');
+    command.trim(); // Clean newline
+
+    if (command == "INVADER_KILLED") {
+      digitalWrite(greenLedPin, HIGH);
+      delay(200); // Light stays on briefly
+      digitalWrite(greenLedPin, LOW);
+    }
+  }
+
+  delay(150);
+}
